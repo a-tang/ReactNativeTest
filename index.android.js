@@ -8,6 +8,7 @@ import React, { Component } from 'react';
 import {
   AppRegistry,
   Image,
+  ListView,
   StyleSheet,
   Text,
   View
@@ -15,17 +16,14 @@ import {
 
 var REQUEST_URL = 'https://raw.githubusercontent.com/facebook/react-native/master/docs/MoviesExample.json';
 
-var MOCKED_MOVIES_DATA = [
-  {title: 'Title', year: '2016', posters: {thumbnail:
-  'http://i.imgur.com/UePbdph.jpg'}},
-];
-
 class TestProject extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
-      movies: null,
+      dataSource: new ListView.DataSource({
+        rowHasChanged: (row1, row2) => row1 !== row2,
+      }),
+      loaded: false,
     };
   }
 
@@ -38,19 +36,25 @@ class TestProject extends Component {
       .then((response) => response.json())
       .then((responseData) => {
         this.setState({
-          movies: responseData.movies,
+          dataSource: this.state.dataSource.cloneWithRows(responseData.movies),
+          loaded: true,
         });
       })
       .done();
   }
 
   render() {
-    if (!this.state.movies) {
+    if (!this.state.loaded) {
       return this.renderLoadingView();
     }
 
-    var movie = this.state.movies[0];
-    return this.renderMovie(movie);
+    return (
+      <ListView
+      dataSource={this.state.dataSource}
+      renderRow={this.renderMovie}
+      style={styles.listView}
+      />
+    );
   }
 
   renderLoadingView() {
@@ -101,6 +105,10 @@ var styles = StyleSheet.create({
   },
   year: {
     textAlign: 'center',
+  },
+  listView: {
+    paddingTop: 20,
+    backgroundColor: '#F5FCFF',
   },
 });
 
